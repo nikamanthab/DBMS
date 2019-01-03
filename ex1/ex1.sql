@@ -74,4 +74,4 @@ alter table customer drop (dob);
 alter table orders modify rd date constraint ord_notnull not null;
 
 alter table order_details drop constraint or_fk;
-alter table order_details add constraint or_fk foreign key(o_no2) references orders(o_no) on delete cascade;
+alter table order_details add constraint or_fk foreign key(o_no) references orders(o_no) on delete cascade;

@@ -1,0 +1,147 @@
+1. Display the nobel laureates who born after '1-jul-1960'
+
+ select * from nobel where dob>'01-jul-1960';
+LAUREATE_ID NAME                           G CAT FIELD                     YEAR_AWARD AFF_ROLE                       DOB       COUNTRY
+----------- ------------------------------ - --- ------------------------- ---------- ------------------------------ --------- ----------
+        111 Eric A Cornell                 m Phy Atomic physics                  2001 University of Colorado         19-DEC-61 USA
+        124 Carol W Greider                f Med Enzymes                         2009 Johns Hopkins University       15-APR-61 USA
+        125 Barack H Obama                 m Pea World organizing                2009 President of USA               04-AUG-61 USA
+
+
+2.  Display the Indian nobel laureate (name, category, field, year awarded) who was awarded in the Chemistry category. 
+
+ 1* select name,category,field,country,year_award from nobel where category='Che' and country='India'
+SQL> /
+
+NAME                           CAT FIELD                     COUNTRY    YEAR_AWARD
+------------------------------ --- ------------------------- ---------- ----------
+Venkatraman Ramakrishnan       Che Biochemistry              India            2009
+
+
+
+3. Display the nobel laureates (name, category,field and year of award) who was awarded between 2000 and 2005 
+for the Physics or Chemistry category.
+
+  1* select name,category,field,year_award from nobel where category in('Phy','Che') and year_award between 2000 and 2005
+SQL> /
+
+NAME                           CAT FIELD                     YEAR_AWARD
+------------------------------ --- ------------------------- ----------
+Eric A Cornell                 Phy Atomic physics                  2001
+Carl E Wieman                  Phy Atomic physics                  2001
+Ryoji Noyori                   Che Organic Chemistry               2001
+K Barry Sharpless              Che Organic Chemistry               2001
+
+
+4.Display the laureates name with their age at the time of award for the Peace category.
+
+  1  select name,year_award-(extract(year from dob)) as age,category,field,country
+  2  from nobel
+  3* where category='Pea'
+SQL> /
+
+NAME                                  AGE CAT FIELD                     COUNTRY
+------------------------------ ---------- --- ------------------------- ----------
+John Hume                              61 Pea Negotiation               Ireland
+David Trimble                          54 Pea Negotiation               Ireland
+Kofi Annan                             63 Pea World organizing          Ghana
+Barack H Obama                         48 Pea World organizing          USA
+
+
+5. Display the laureates (name,category,aff_role,country) whose name starts with A or ends with a, but not from Isreal.
+
+  1* select name,category,aff_role,country from nobel where (name like 'A%' or name like '%a') and country !='Isreal'
+SQL> /
+
+NAME                           CAT AFF_ROLE                       COUNTRY
+------------------------------ --- ------------------------------ ----------
+Amartya Sen                    Eco Trinity College                India
+Barack H Obama                 Pea President of USA               USA
+
+
+
+6. Display the name,gender,affiliation, dob and country of laureates born in 1950's.
+
+  1  select name,gender,aff_role,dob as "Born 1950",country
+  2  from nobel
+  3* where extract(year from dob) like '%5_'
+SQL> /
+
+NAME                           G AFF_ROLE                       Born 1950 COUNTRY
+------------------------------ - ------------------------------ --------- ----------
+Robert B. Laughlin             m Stanford University            01-NOV-50 USA
+Carl E Wieman                  m University of Colorado         26-MAR-51 USA
+Venkatraman Ramakrishnan       m MRC Laboratory                 19-AUG-52 India
+Herta Muller                   f                                17-AUG-53 Romania
+
+
+7. Display the laureates (name,gender,category,aff_role,country) whose name starts with A, D or H. Remove the laureate if he/she dont have
+any affiliations. Sort the result in ascendening order of name.
+
+  1  select name,gender,category,aff_role,country
+  2  from nobel
+  3  where substr(name,1,1) in ('A','D','H') and aff_role is not null
+  4* order by name
+SQL> /
+
+NAME                           G CAT AFF_ROLE                       COUNTRY
+------------------------------ - --- ------------------------------ ----------
+Ada E Yonath                   f Che Weizmann Institute of Science  Isreal
+Amartya Sen                    m Eco Trinity College                India
+Daniel C. Tsui                 m Phy Princeton University           China
+David Trimble                  m Pea Ulster Unionist party Leader   Ireland
+Horst L Stormer                m Phy Columbia University            Germany
+
+
+8. DIsplay the university name(s) that has to its credit by having atleast 2 nobel laureate with them.
+
+  1  select aff_role,count(*) from nobel where aff_role like '%Univ%'
+  2  group by aff_role
+  3* having count(*)>1
+SQL> /
+
+AFF_ROLE                         COUNT(*)
+------------------------------ ----------
+University of California                5
+University of Colorado                  2
+
+
+9. List the date of birth of elder and younger laureates by countrywise. Label the coulmn as 
+Elder, Younger respectively. Include only the country having more than one laureate. 
+Sort the output in alphabetical order of country.
+
+  1  select country,min(dob) elder,max(dob) Younger
+  2  from nobel
+  3  group by country
+  4  having count(*)>1
+  5* order by country
+SQL> /
+
+COUNTRY    ELDER     YOUNGER
+---------- --------- ---------
+China      04-NOV-33 28-FEB-39
+India      03-NOV-33 19-AUG-52
+Ireland    18-JAN-37 15-OCT-44
+UK         31-OCT-25 17-AUG-32
+USA        10-MAY-30 19-DEC-61
+
+
+10. Show the details (year award,category,field) where the award is shared among the laureates in the same category and field.
+Exclude the laureates from USA.
+
+  1  select year_award,category,field
+  2  from nobel
+  3  where country!='USA'
+  4  group by year_award,category,field
+  5  having count(*)>1
+  6* order by year_award
+SQL> /
+
+YEAR_AWARD CAT FIELD
+---------- --- -------------------------
+      1998 Che Theoretical Chemistry
+      1998 Pea Negotiation
+      1998 Phy Condensed matter
+      2009 Che Biochemistry
+
+
