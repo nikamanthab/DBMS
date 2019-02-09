@@ -1,4 +1,4 @@
-REM Ex 3
+REM Ex 4
 REM Population of Bakery Database
 REM Drop statements
 drop table item_list;
@@ -864,3 +864,183 @@ insert into item_list values(16532, 4,  '24-8x10');
 insert into item_list values(34378, 1,  '90-CHR-11');
 insert into item_list values(34378, 2,  '45-VA');
 
+
+
+rem 1. Create a view named Blue_Flavor, which display the product details (product id, food, price) of Blueberry flavor.
+
+create view Blue_Flavor(productid,food,price)
+as (select pid,food,price from products
+where flavor = 'Blueberry');
+select * from Blue_Flavor;
+
+rem update check
+select COLUMN_NAME,UPDATABLE from USER_UPDATABLE_COLUMNS 
+where table_name = 'BLUE_FLAVOR';
+
+rem insertion
+insert into products values('20-BC-C-12','Blueberry','Cake',10.12);
+
+select * from Blue_Flavor;
+
+rem updation
+update Blue_Flavor
+set price = price+10
+where food='Danish';
+
+select * from products where flavor='Blueberry';
+
+rem deletion
+delete from Blue_Flavor
+where food = 'Cake';
+select * from Blue_Flavor;
+
+
+rem inference:the view is updatable
+
+rem 2. Create a view named Cheap_Food, which display the details (product id, flavor, 
+rem food, price) of products with price lesser than $1. Ensure that, the price of these 
+rem food(s) should never rise above $1 through view.
+
+create view Cheap_Food
+as (select * from products where price < 1)
+with check option;
+
+rem update check
+select COLUMN_NAME,UPDATABLE from USER_UPDATABLE_COLUMNS 
+where table_name = 'CHEAP_FOOD';
+
+select * from Cheap_Food;
+
+rem updation
+update Cheap_Food set price=price+10;
+
+select * from products where price < 1;
+
+rem insertion
+insert into products
+values('20-BC-C-13','Blueberry','Cake',0.5);
+
+select * from products where price < 1;
+
+rem deletion
+delete from Cheap_Food
+where food = 'Cake';
+select * from Cheap_Food;
+
+rem inference:the table is updatable
+
+rem 3. Create a view called Hot_Food that show the product id and its quantity where the 
+rem same product is ordered more than once in the same receipt.
+
+create view Hot_Food as
+(select p.pid,count(i.item) as count 
+from item_list i,products p 
+where p.pid = i.item 
+group by i.rno,p.pid 
+having count(i.item)>1); 
+
+rem check updates
+select COLUMN_NAME,UPDATABLE from USER_UPDATABLE_COLUMNS 
+where table_name = 'HOT_FOOD';
+
+rem insertion check
+insert into item_list values(73716, 6,'70-MAR');
+select * from Hot_Food;
+
+rem insertion - cannot be added - violation
+insert into Hot_Food values(73717,2);
+
+rem the view is not updatable
+
+rem 4. Create a view named Pie_Food that will display the details (customer lname, flavor, 
+rem receipt number and date, ordinal) who had ordered the Pie food with receipt details.
+
+create view Pie_Food as
+(select c.lname,p.flavor,r.rno,r.rdate,i.ordinal 
+from customers c,products p,receipts r,item_list i
+where c.cid = r.cid and p.pid = i.item and r.rno = i.rno and p.food='Pie');
+
+rem check update
+select COLUMN_NAME,UPDATABLE from USER_UPDATABLE_COLUMNS 
+where table_name = 'PIE_FOOD';
+
+rem insertion
+select * from Pie_Food;
+
+insert into Customers
+values(23,'Nitin','Appiah');
+
+insert into item_list
+values(50660, 7,  '70-W');
+
+select * from Pie_Food;
+
+rem inference:the view is not updatable
+
+rem 5. Create a view Cheap_View from Cheap_Food that shows only the product id, flavor 
+rem and food.
+
+create view Cheap_View as
+select pid,flavor,food from Cheap_Food;
+select * from Cheap_View;
+
+rem update check
+select COLUMN_NAME,UPDATABLE from USER_UPDATABLE_COLUMNS 
+where table_name = 'CHEAP_VIEW';
+
+rem updatation
+select * from products where price < 1;
+select * from Cheap_View;
+update Cheap_view set food='Cake';
+select * from Cheap_View;
+select * from products where price < 1;
+
+rem insertion
+insert into products
+values('20-BC-C-99','Blueberry','Eclair',0.5);
+
+select * from products where price < 1;
+select * from Cheap_View; 
+
+rem the view is updatable
+
+rem 6. Create a sequence named Ordinal_No_Seq which generates the ordinal number 
+rem starting from 1, increment by 1, to a maximum of 10. Include the options of cycle, 
+cache and order. Use this sequence to populate the item_list table for a new order.
+
+CREATE SEQUENCE Ordinal_No_Seq
+START WITH 3
+INCREMENT BY 1
+MINVALUE 1
+MAXVALUE 5
+CYCLE 
+cache 2
+order ;
+
+rem instertion 
+insert into Receipts values(69875, '28-Oct-2007', 15);
+insert into item_list values(69875, Ordinal_No_Seq.nextval,  '70-TU');
+insert into item_list values(69875, Ordinal_No_Seq.nextval,  '70-TU');
+delete from item_list where Ordinal=1;
+insert into item_list values(69875, Ordinal_No_Seq.nextval,  '70-TU');
+insert into item_list values(69875, Ordinal_No_Seq.nextval,  '70-TU');
+
+
+select * from item_list where rno='69875';
+
+rem 7. Create a synonym named Product_details for the item_list relation. Perform the DML operations on it.
+
+create synonym Product_details for item_list;
+
+rem dml command ex
+select * from Product_details where ordinal=6;
+
+rem 8. Drop all the above created database objects.
+
+drop view Blue_Flavor;
+drop view Cheap_Food;
+drop view Hot_Food;
+drop view Pie_Food;
+drop view Cheap_View;
+drop sequence Ordinal_No_Seq;
+drop synonym Product_Details;
